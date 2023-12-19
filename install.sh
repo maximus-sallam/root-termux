@@ -35,9 +35,7 @@ fn_install () {
 
     clear;
 
-    directory=ubuntu-fs;
-
-    UBUNTU_VERSION=jammy;
+    directory=kali-fs;
 
     if [ -d "$directory" ]; then
         first=1
@@ -49,28 +47,15 @@ fn_install () {
     fi
 
     if [ "$first" != 1 ]; then
-        if [ -f "ubuntu.tar.gz" ]; then
-            rm -rf ubuntu.tar.gz > /dev/null 2>&1;
+        if [ -f "kali-linux-arm64.tar.gz" ]; then
+            echo "kali linux already downloaded";
         fi
 
-        if [ ! -f "ubuntu.tar.gz" ]; then
+        if [ ! -f "kali-linux-arm64.tar.gz" ]; then
 
-            print_ew "info" "Downloading the ubuntu rootfs, please wait 2 minute...";
+            print_ew "info" "Downloading the kali rootfs, please wait 2 minute...";
 
-            ARCHITECTURE=$(dpkg --print-architecture);
-
-            case "$ARCHITECTURE" in
-                aarch64)
-                    ARCHITECTURE=arm64 ;;
-                arm)
-                    ARCHITECTURE=armhf ;;
-                amd64|x86_64)
-                    ARCHITECTURE=amd64 ;;
-                *)
-                    print_ew "error" "Unknown architecture :- $ARCHITECTURE" && exit 1 ;;
-            esac
-
-            wget "https://partner-images.canonical.com/core/${UBUNTU_VERSION}/current/ubuntu-${UBUNTU_VERSION}-core-cloudimg-${ARCHITECTURE}-root.tar.gz" -q -O ubuntu.tar.gz;
+            wget "https://maximus-sallam/kali-linux-arm64.tar.gz" --show-progress -O kali-linux-arm64.tar.gz;
 
             print_ew "info" "Download complete!";
         fi
@@ -81,15 +66,15 @@ fn_install () {
 
         cd $directory;
 
-        print_ew "info" "Decompressing the ubuntu rootfs, please wait...";
+        print_ew "info" "Decompressing the kali rootfs, please wait...";
 
-        proot --link2symlink tar -zxf $cur/ubuntu.tar.gz --exclude='dev'||:;
+        proot --link2symlink tar -zxf $cur/kali-linux-arm64.tar.gz --exclude='dev'||:;
 
-        print_ew "info" "The ubuntu rootfs have been successfully decompressed!";
+        print_ew "info" "The kali rootfs have been successfully decompressed!";
 
         print_ew "info" "Fixing the resolv.conf, so that you have access to the internet";
 
-        printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > etc/resolv.conf;
+        printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" >> etc/resolv.conf;
 
         stubs=();
 
@@ -106,7 +91,7 @@ fn_install () {
 
     fi
 
-    mkdir -p ubuntu-binds;
+    mkdir -p kali-binds;
 
     bin=start.sh;
 
@@ -128,8 +113,8 @@ command+=" --link2symlink";
 command+=" -0";
 command+=" -r $directory";
 
-if [ -n "\$(ls -A ubuntu-binds)" ]; then
-    for f in ubuntu-binds/* ;do
+if [ -n "\$(ls -A kali-binds)" ]; then
+    for f in kali-binds/* ;do
       . \$f;
     done
 fi
@@ -137,7 +122,7 @@ fi
 command+=" -b /dev";
 command+=" -b /proc";
 command+=" -b /sys";
-command+=" -b ubuntu-fs/tmp:/dev/shm";
+command+=" -b kali-fs/tmp:/dev/shm";
 command+=" -b /data/data/com.termux";
 command+=" -b /:/host-rootfs";
 command+=" -b /sdcard";
@@ -174,14 +159,12 @@ EOM
     print_ew "info" "Successfully made start.sh executable";
 
     print_ew "info" "Cleaning up please wait...";
-
-    rm ubuntu.tar.gz -rf > /dev/null 2>&1;
-
+    
+    rm -rf .git 2>&1;
+    
     print_ew "info" "Successfully cleaned up!";
 
     print_ew "info" "installation completed! Run => bash start.sh";
-
-    rm -rf .git 2>&1;
 
 }
 
@@ -190,7 +173,7 @@ trap '' 2
     if [ "$1" == "-y" ]; then
         fn_install;
     elif [ "$1" == "" ]; then
-        print_ew "question" "Do you want to install ubuntu-in-termux? [Y/n] " && read cmd;
+        print_ew "question" "Do you want to install kali-in-termux? [Y/n] " && read cmd;
         if [ "$cmd" == "y" ]; then
             fn_install;
         elif [ "$cmd" == "Y" ]; then
